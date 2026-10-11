@@ -1,0 +1,25 @@
+import {useState,useEffect} from 'react';import {NavLink,Link,Outlet,Route,Routes,useLocation} from 'react-router-dom';
+import {AnimatePresence,motion,MotionConfig} from 'framer-motion';import {Heart,Menu,X,ArrowUp,Search as SearchIcon,ShoppingBag} from 'lucide-react';
+import {useCart} from './context/CartContext.jsx';import {MegaShop,Search,Cart,Checkout} from './pages/pages2.jsx';import {useWishlist} from './context/WishlistContext.jsx';import {contact,PREORDER_URL} from './data/content.js';
+import {Home,Shop,Product,About,Quality,Contact,FAQ,Wishlist,Policy,NotFound} from './pages/pages.jsx';
+const links=[['/','Home'],['/shop','Shop'],['/about','About'],['/ingredients-quality','Quality'],['/faq','FAQ'],['/contact','Contact']];
+function Layout(){const [open,setOpen]=useState(false);const [top,setTop]=useState(false);const loc=useLocation();const w=useWishlist();const c=useCart();
+ useEffect(()=>{setOpen(false);window.scrollTo(0,0)},[loc.pathname]);
+ useEffect(()=>{const f=()=>setTop(scrollY>600);addEventListener('scroll',f);return()=>removeEventListener('scroll',f)},[]);
+ const cls=({isActive})=>isActive?'text-accent font-bold':'hover:text-accent';
+ return <div className="min-h-screen"><div className="bg-accent py-1 text-center text-sm font-semibold text-black">Pre-orders open · <a className="underline" href={PREORDER_URL} target="_blank" rel="noreferrer">Book yours</a></div>
+ <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 backdrop-blur"><nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3"><Link to="/" className="text-xl font-extrabold">BYO-<span className="text-accent">V</span> Labs</Link>
+  <div className="hidden items-center gap-6 md:flex">{links.map(([t,l])=>t==='/shop'?<MegaShop key={t} cls={cls}/>:<NavLink key={t} to={t} end={t==='/'} className={cls}>{l}</NavLink>)}</div>
+  <div className="flex items-center gap-4"><Link to="/search" aria-label="Search"><SearchIcon/></Link><Link to="/cart" aria-label={`Cart, ${c.count} items`} className="relative"><ShoppingBag/>{c.count>0&&<motion.span key={c.count} initial={{scale:1.7}} animate={{scale:1}} className="absolute -right-2 -top-2 rounded-full bg-accent px-1.5 text-xs text-black">{c.count}</motion.span>}</Link><Link to="/wishlist" aria-label="Wishlist" className="relative"><Heart/>{w.ids.length>0&&<span className="absolute -right-2 -top-2 rounded-full bg-accent px-1.5 text-xs text-black">{w.ids.length}</span>}</Link>
+  <button className="md:hidden" aria-label="Menu" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button></div></nav>
+  <AnimatePresence>{open&&<motion.div initial={{height:0,opacity:0}} animate={{height:'auto',opacity:1}} exit={{height:0,opacity:0}} className="overflow-hidden md:hidden"><div className="flex flex-col gap-4 px-5 pb-4">{links.map(([t,l])=><NavLink key={t} to={t} end={t==='/'} className={cls}>{l}</NavLink>)}</div></motion.div>}</AnimatePresence></header>
+ <main><AnimatePresence mode="wait"><motion.div key={loc.pathname} initial={{opacity:0}} animate={{opacity:1}} transition={{duration:.25}}><Outlet/></motion.div></AnimatePresence></main>
+ <footer className="mt-10 border-t border-white/10 bg-ink px-5 py-10 text-sm text-white/70"><div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3"><div><b className="text-white">BYOV Nutrition Labs</b><p>{contact.address}</p></div>
+  <div className="flex flex-col gap-1">{[['/shipping-policy','Shipping Policy'],['/return-refund-policy','Return & Refund'],['/privacy-policy','Privacy'],['/terms-and-conditions','Terms']].map(([t,l])=><Link key={t} to={t}>{l}</Link>)}</div>
+  <div><a href={contact.instagramUrl}>Instagram @{contact.instagram}</a><br/><a href={contact.whatsapp}>WhatsApp community</a><br/><a href={contact.dietChart}>Free diet chart</a></div></div></footer>
+ {top&&<button aria-label="Back to top" onClick={()=>scrollTo({top:0,behavior:'smooth'})} className="fixed bottom-5 right-5 rounded-full bg-accent p-3 text-black"><ArrowUp/></button>}</div>}
+export default function App(){return <MotionConfig reducedMotion="user"><Routes><Route element={<Layout/>}>
+ <Route index element={<Home/>}/><Route path="shop" element={<Shop/>}/><Route path="collections/:slug" element={<Shop category/>}/><Route path="products/:slug" element={<Product/>}/>
+ <Route path="about" element={<About/>}/><Route path="ingredients-quality" element={<Quality/>}/><Route path="contact" element={<Contact/>}/><Route path="faq" element={<FAQ/>}/><Route path="wishlist" element={<Wishlist/>}/>
+ <Route path="shipping-policy" element={<Policy title="Shipping Policy"/>}/><Route path="return-refund-policy" element={<Policy title="Return & Refund Policy"/>}/><Route path="privacy-policy" element={<Policy title="Privacy Policy"/>}/><Route path="terms-and-conditions" element={<Policy title="Terms & Conditions"/>}/>
+ <Route path="search" element={<Search/>}/><Route path="cart" element={<Cart/>}/><Route path="checkout" element={<Checkout/>}/><Route path="*" element={<NotFound/>}/></Route></Routes></MotionConfig>}
